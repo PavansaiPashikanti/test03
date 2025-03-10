@@ -10,5 +10,5 @@ jobs:
     uses: PavansaiPashikanti/test03/.github/workflows/test03.yml@main
     with:
       test: |
-        echo "${{ secrets.test  }}"
+        echo "$secrets.test"
     secrets: inherit
