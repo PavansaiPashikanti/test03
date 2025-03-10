@@ -1,0 +1,14 @@
+name: test02
+run-name: test02
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  test:
+    uses: PavansaiPashikanti/test03/.github/workflows/test03.yml
+    with:
+      test: |
+        echo "${{ secrets.test  }}"
+    secrets: inherit
