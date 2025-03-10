@@ -3,6 +3,7 @@ run-name: test02
 
 on:
   workflow_dispatch:
+  push:
 
 
 jobs:
