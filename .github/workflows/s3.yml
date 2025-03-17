@@ -20,7 +20,7 @@ jobs:
           pwd
           echo ${{ github.workspace }}
           ls -la
-          zip artifacts.zip .
+          zip -r artifacts.zip .
           ls -la
 
 
