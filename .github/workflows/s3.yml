@@ -15,6 +15,14 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
+
+      - name: upload artifcats
+        uses: actions/upload-artifact@v4
+        with:
+          name: test
+          path: |
+            ${{ github.workpace }}
+
       - name: zip
         run: |
           pwd
@@ -23,11 +31,3 @@ jobs:
           zip -r artifacts.zip .
           ls -la
 
-
-      - name: upload artifcats
-        uses: actions/upload-artifact@v4
-        with:
-          name: test
-          path: |
-            ${{ github.workpace }}
-            !${{ github.workpace }}/artifacts.zip
