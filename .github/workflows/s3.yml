@@ -25,9 +25,37 @@ jobs:
 
       - name: zip
         run: |
+          currentDateTime=$(date +"%Y%m%d_%H%M%S")
           pwd
           echo ${{ github.workspace }}
           ls -la
-          zip -r artifacts.zip .
+          filename=artifacts_${{ github.run_id }}_$currentDateTime.zip
+          echo "filename=artifacts_${{ github.run_id }}_$currentDateTime.zip" >> $GITHUB_ENV
+          zip -r $filename .
           ls -la
+
+      - name: install boto3
+        run: pip install boto3
+
+      - name: upload to s3
+        run: |
+          import boto3
+          from botocore.exceptions import NoCredentialsError
+
+          def upload_to_aws(local_file, bucket, s3_file):
+              s3 = boto3.client('s3', aws_access_key_id='${{ secrets.aws_access_key_id }}', aws_secret_access_key='${{ secrets.aws_secret_access_key }}')
+
+              try:
+                  s3.upload_file(local_file, bucket, s3_file)
+                  print("Upload Successful")
+                  return True
+              except FileNotFoundError:
+                  print("The file was not found")
+                  return False
+              except NoCredentialsError:
+                  print("Credentials not available")
+                  return False
+
+          uploaded = upload_to_aws('${{ env.filename }}', 'github-actions-07784', '${{ env.filename }}')
+
 
