@@ -2,6 +2,9 @@ name: s3
 run-name: s3
 
 on:
+  push:
+    path:
+      - .github/workflows/s3.yml
   workflow_dispatch:
 
 
