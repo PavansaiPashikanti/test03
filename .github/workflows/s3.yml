@@ -29,8 +29,8 @@ jobs:
           pwd
           echo ${{ github.workspace }}
           ls -la
-          filename=artifacts_${{ github.run_id }}_$currentDateTime.zip
-          echo "filename=artifacts_${{ github.run_id }}_$currentDateTime.zip" >> $GITHUB_ENV
+          filename=artifacts_${{ github.run_number }}_$currentDateTime.zip
+          echo "filename=$filename" >> $GITHUB_ENV
           zip -r $filename .
           ls -la
 
