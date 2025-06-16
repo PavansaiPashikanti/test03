@@ -1,0 +1,75 @@
+name: Change Code
+run-name: Change Code Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      python_file_path:
+        description: 'Path to the Python file to deploy'
+        required: true
+        type: string
+
+jobs:
+  upload:
+    runs-on: my-local-vm
+    steps:
+      - name: Upload Python script as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-code
+          path: ${{ inputs.python_file_path }}
+
+  deploy:
+    runs-on: ec2-vm
+    needs: upload
+    steps:
+      - name: Download the artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-code
+          path: temp_download
+
+      - name: Rename with today's date and move to final directory
+        id: move_script
+        run: |
+          TODAY=$(date +'%d_%m_%Y')
+          ORIGINAL=$(ls *.py | head -n1)
+          RENAMED="account_charan_${TODAY}.py"
+          mv "$ORIGINAL" "/home/ubuntu/trading_bot/$RENAMED"
+          echo "python_file=$RENAMED" >> "$GITHUB_OUTPUT"
+        working-directory: temp_download
+
+      - name: Stop any old running account_charan*.py script
+        run: |
+          PIDS=$(ps aux | grep '[p]ython3 account_charan_.*\.py' | awk '{print $2}')
+          if [ -n "$PIDS" ]; then
+            echo "Killing running script(s): $PIDS"
+            kill $PIDS
+          else
+            echo "No old account_charan scripts are running"
+          fi
+
+      - name: Run new script in background
+        run: |
+          cd /home/ubuntu/trading_bot/
+          source env/bin/activate
+          chmod +x ${{ steps.move_script.outputs.python_file }}
+          nohup python3 ${{ steps.move_script.outputs.python_file }} > /dev/null 2>&1 &
+          echo "✅ Started script: ${{ steps.move_script.outputs.python_file }}"
+
+      - name: Clean up temp folder
+        run: |
+          rm -rf temp_download
+          echo "🧹 Temporary folder deleted"
+
+      - name: Verify that the script is running
+        run: |
+          sleep 2  # Let the script settle
+          IS_RUNNING=$(ps aux | grep "[p]ython3 .*${{ steps.move_script.outputs.python_file }}")
+          if [ -n "$IS_RUNNING" ]; then
+            echo "✅ Script is running:"
+            echo "$IS_RUNNING"
+          else
+            echo "❌ Script failed to start"
+            exit 1
+          fi
